@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-
 import { sessionState, useChatSession } from "@chainlit/react-client";
-import { Playground } from "./components/playground";
 import { useRecoilValue } from "recoil";
+
+import { Playground } from "./components/playground";
 
 const userEnv = {};
 
@@ -19,7 +19,7 @@ function App() {
           userEnv
         });
       });
-  }, [connect]);
+  }, [connect]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return (
     <>

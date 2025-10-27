@@ -9,18 +9,18 @@ import {
 import { useMemo, useState } from "react";
 
 function flattenMessages(
-  messages: IStep[], 
+  messages: IStep[],
   condition: (node: IStep) => boolean
 ): IStep[] {
   return messages.reduce((acc: IStep[], node) => {
     if (condition(node)) {
       acc.push(node);
     }
-    
+
     if (node.steps?.length) {
       acc.push(...flattenMessages(node.steps, condition));
     }
-    
+
     return acc;
   }, []);
 }
@@ -31,8 +31,8 @@ export function Playground() {
   const { messages } = useChatMessages();
 
   const flatMessages = useMemo(() => {
-    return flattenMessages(messages, (m) => m.type.includes("message"))
-  }, [messages])
+    return flattenMessages(messages, (m) => m.type.includes("message"));
+  }, [messages]);
 
   const handleSendMessage = () => {
     const content = inputValue.trim();
