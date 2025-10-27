@@ -27,7 +27,6 @@ function flattenMessages(
 }
 
 export function Playground() {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const { sendMessage } = useChatInteract();
@@ -71,15 +70,26 @@ export function Playground() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 bg-hero-image bg-stretch bg-center">
+      {!isFullscreen && (
+        <button
+          onClick={() => setIsFullscreen(true)}
+          className="absolute right-4 bottom-4 rounded-full w-12 h-12 grid place-items-center text-3xl font-black dark:text-blue-200 bg-blue-600"
+        >
+          X
+        </button>
+      )}
       <div
         className={cn(
           isFullscreen
-            ? "min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col border-2 border-red-500"
-            : "absolute right-4 bottom-16 max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col h-[60vh]"
+            ? "min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col"
+            : "absolute right-4 bottom-20 max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col h-[60vh]"
         )}
       >
-        <h1 className="text-2xl font-bold px-4 py-2 dark:text-blue-200 dark:bg-blue-950 rounded-t-lg">Chainlit POC</h1>
+        <h1 className="text-2xl font-bold px-4 py-2 dark:text-blue-200 dark:bg-blue-950 rounded-t-lg flex items-center justify-between">
+          Chainlit POC
+          {isFullscreen && <button onClick={() => setIsFullscreen(false)}>X</button>}
+        </h1>
         <div className="flex-1 overflow-auto p-6">
           <div className="space-y-4">
             {flatMessages.map((message) => renderMessage(message))}
