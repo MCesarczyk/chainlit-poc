@@ -7,6 +7,7 @@ import {
   IStep,
 } from "@chainlit/react-client";
 import { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 
 function flattenMessages(
   messages: IStep[],
@@ -26,6 +27,8 @@ function flattenMessages(
 }
 
 export function Playground() {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const [isFullscreen, setIsFullscreen] = useState(false);
   const [inputValue, setInputValue] = useState("");
   const { sendMessage } = useChatInteract();
   const { messages } = useChatMessages();
@@ -68,30 +71,39 @@ export function Playground() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col">
-      <div className="flex-1 overflow-auto p-6">
-        <div className="space-y-4">
-          {flatMessages.map((message) => renderMessage(message))}
+    <div className="min-h-screen bg-gray-100 dark:bg-gray-900">
+      <div
+        className={cn(
+          isFullscreen
+            ? "min-h-screen bg-gray-100 dark:bg-gray-900 flex flex-col border-2 border-red-500"
+            : "absolute right-4 bottom-16 max-w-lg bg-white dark:bg-gray-800 shadow-lg rounded-lg flex flex-col h-[60vh]"
+        )}
+      >
+        <h1 className="text-2xl font-bold px-4 py-2 dark:text-blue-200 dark:bg-blue-950 rounded-t-lg">Chainlit POC</h1>
+        <div className="flex-1 overflow-auto p-6">
+          <div className="space-y-4">
+            {flatMessages.map((message) => renderMessage(message))}
+          </div>
         </div>
-      </div>
-      <div className="border-t p-4 bg-white dark:bg-gray-800">
-        <div className="flex items-center space-x-2">
-          <Input
-            autoFocus
-            className="flex-1"
-            id="message-input"
-            placeholder="Type a message"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            onKeyUp={(e) => {
-              if (e.key === "Enter") {
-                handleSendMessage();
-              }
-            }}
-          />
-          <Button onClick={handleSendMessage} type="submit">
-            Send
-          </Button>
+        <div className="border-t p-4 bg-white dark:bg-gray-800">
+          <div className="flex items-center space-x-2">
+            <Input
+              autoFocus
+              className="flex-1"
+              id="message-input"
+              placeholder="Type a message"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              onKeyUp={(e) => {
+                if (e.key === "Enter") {
+                  handleSendMessage();
+                }
+              }}
+            />
+            <Button onClick={handleSendMessage} type="submit">
+              Send
+            </Button>
+          </div>
         </div>
       </div>
     </div>
