@@ -1,0 +1,8 @@
+services:
+  fastapi-app:
+    build: .
+    container_name: chainlit-poc-api
+    env_file:
+      - .env
+    ports:
+      - "8078:80"
