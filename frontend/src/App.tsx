@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { sessionState, useChatSession } from "@chainlit/react-client";
 import { useRecoilValue } from "recoil";
 
-import { Playground } from "./components/playground";
+import { Embedded } from "@/components/embedded";
 
 const userEnv = {};
 
@@ -24,7 +24,7 @@ function App() {
   return (
     <>
       <div>
-        <Playground />
+        <Embedded />
       </div>
     </>
   );
