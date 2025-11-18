@@ -1,41 +1,34 @@
-from langchain_ollama import OllamaLLM
-from langchain_core.prompts import ChatPromptTemplate
 import chainlit as cl
-from typing import Optional
+import json
 
-@cl.password_auth_callback
-def auth_callback(username: str, password: str):
-    if (username, password) == ("admin", "admin"):
-        return cl.User(
-            identifier="admin", metadata={"role": "admin", "provider": "credentials"}
-        )
-    else:
-        return None
-
-ollama = OllamaLLM(
-    model="hf.co/SunJack/Qwen2-0.5b-finetuning:Q4_K_M",
-    base_url="http://ollama:11434"
-)
-
-prompt = ChatPromptTemplate.from_messages([
-    ("system", "You are a helpful bot, you always reply in Bulgarian"),
-    ("user", "{question}")
-])
-
-chain = prompt | ollama
-
-@cl.on_chat_start
-async def start():
-    cl.user_session.set("chain", chain)
+@cl.set_starters
+async def set_starters():
+    return [
+        cl.Starter(
+            label="Hello",
+            message="Hello there!",
+            icon="/public/icon.svg",
+        ),
+    ]
 
 @cl.on_message
-async def on_message(message: cl.Message):
-    chain = cl.user_session.get("chain")
-    msg = cl.Message(content="")
+async def main(message: cl.Message):
+    await cl.Message(content=f"You said: {message.content}").send()
 
-    async for chunk in chain.astream(
-        {"question": message.content},
-    ):
-        await msg.stream_token(chunk)
+@cl.on_window_message
+async def handle_window_message(message: str):
+    """
+    Receive context data from parent React app
+    Example: { userId, sessionId, metadata }
+    """
+    try:
+        data = json.loads(message)
+        cl.user_session.set("user_context", data)
 
-    await msg.send()
+        await cl.send_window_message(
+            json.dumps({"status": "received", "context": data})
+        )
+    except json.JSONDecodeError:
+        await cl.send_window_message(
+            json.dumps({"status": "error", "message": "Invalid JSON"})
+        )

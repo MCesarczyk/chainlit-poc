@@ -1,31 +1,33 @@
 services:
-  ollama:
-    image: ollama/ollama
-    container_name: ollama
-    ports:
-      - "11435:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    dns:
-      - 8.8.8.8
-      - 8.8.4.4
-    environment:
-      - OLLAMA_HOST=0.0.0.0:11434
-    restart: unless-stopped
-
-  chainlit-app:
+  chainlit:
     build: .
-    container_name: chainlit-standalone
+    container_name: chainlit
     env_file:
       - .env
     ports:
-      - "8077:8000"
+      - "8000:8000"
     environment:
       - PYTHONUNBUFFERED=1
       - CHAINLIT_HOST=0.0.0.0
-    command: chainlit run app.py --host 0.0.0.0 --port 8000
+      - CHAINLIT_PORT=8000
+    command: chainlit run app.py --host 0.0.0.0 --port 8000 -h
+    restart: unless-stopped
+    networks:
+      - chainlit-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: chainlit-nginx
+    ports:
+      - "30391:8080"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - chainlit
+    networks:
+      - chainlit-network
     restart: unless-stopped
 
-volumes:
-  ollama_data:
-    driver: local
+networks:
+  chainlit-network:
+    driver: bridge
