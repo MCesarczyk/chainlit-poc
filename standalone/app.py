@@ -3,7 +3,6 @@ import chainlit as cl
 from datetime import datetime
 import json
 from typing import Optional
-import chainlit as cl
 import os
 
 
@@ -38,31 +37,31 @@ async def on_window_message(message: str):
         ).send()
 
         if data.get("type") == "VIEW_CONTEXT":
-            context = {
-                "areaId": data.get("areaId"),
-                "token": data.get("token"),
-                "timestamp": data.get("timestamp", datetime.now().isoformat()),
-            }
-            token: Optional[str] = context.get("token")
+            token: Optional[str] = data.get("token")
             try:
                 payload = jwt.decode(token, SECRET, algorithms=["RS256"])
 
                 context = cl.user_session.get("context", {})
                 context["authorized"] = True
                 context["token"] = token
-                context["userId"] = payload.get("sub")
+                context["userId"] = payload.get("user_id")
                 context["email"] = payload.get("email")
                 context["timestamp"] = datetime.now().isoformat()
+                context["expiry"] = payload.get("exp")
+                context["areaId"] = data.get("areaId")
+
+                print("Payload:", payload)
+                print("Context:", context)
 
                 cl.user_session.set("context", context)
 
                 await cl.Message(
-                    content=f"✅ **Authorized!**\n\n👤 User: `{payload.get('sub')}`\n📧 Email: `{payload.get('email')}`"
+                    content=f"✅ **Authorized!**\n\n👤 User: `{payload.get('user_id')}`\n📧 Email: `{payload.get('email')}`"
                 ).send()
 
             except jwt.InvalidTokenError as e:
                 await cl.Message(
-                    content=f"❌ **Authorization failed**: Invalid token"
+                    content=f"❌ **Authorization failed**: Invalid token {str(e)}"
                 ).send()
                 return
 
@@ -72,7 +71,7 @@ async def on_window_message(message: str):
                 return
 
             await cl.Message(
-                content=f"✅ Context received!\n\n📋 **AOI ID**: `{context['areaId']}`\n\n🔑 **Token**: `{context['token'][:40]}...`\n\n🕐 **Updated**: {datetime.fromisoformat(context['timestamp']).strftime('%Y-%m-%d %H:%M:%S')}"
+                content=f"✅ Context received!\n\n📋 **AOI ID**: `{context['areaId']}`\n\n🔑 **Token**: `{context['token'][:40]}...`\n\n🕐 **Updated**: {datetime.fromisoformat(context['timestamp']).strftime('%Y-%m-%d %H:%M:%S')}\n\n🕐 **Expires**: {datetime.fromtimestamp(context['expiry']).strftime('%Y-%m-%d %H:%M:%S')}"
             ).send()
 
             await cl.send_window_message(json.dumps({
