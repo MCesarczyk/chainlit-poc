@@ -7,10 +7,10 @@ import chainlit as cl
 import os
 
 
-SECRET = os.getenv("JWT_SECRET")
+SECRET = os.getenv("JWT_SECRET_KEY")
 
 if SECRET is None:
-    raise ValueError("JWT_SECRET environment variable not set")
+    raise ValueError("JWT_SECRET_KEY environment variable not set")
 
 
 @cl.on_chat_start
@@ -45,7 +45,7 @@ async def on_window_message(message: str):
             }
             token: Optional[str] = context.get("token")
             try:
-                payload = jwt.decode(token, SECRET, algorithms=["HS256"])
+                payload = jwt.decode(token, SECRET, algorithms=["RS256"])
 
                 context = cl.user_session.get("context", {})
                 context["authorized"] = True
