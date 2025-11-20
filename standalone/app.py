@@ -1,13 +1,21 @@
+import jwt
 import chainlit as cl
 from datetime import datetime
 import json
 from typing import Optional
 import chainlit as cl
+import os
+
+
+SECRET = os.getenv("JWT_SECRET")
+
+if SECRET is None:
+    raise ValueError("JWT_SECRET environment variable not set")
 
 
 @cl.on_chat_start
 async def on_chat_start():
-    """Initialize the embedded viewer session"""
+    """Initialize session—NOT YET AUTHORIZED"""
     cl.user_session.set("context", {
         "areaId": None,
         "token": None,
@@ -35,8 +43,33 @@ async def on_window_message(message: str):
                 "token": data.get("token"),
                 "timestamp": data.get("timestamp", datetime.now().isoformat()),
             }
+            token: Optional[str] = context.get("token")
+            try:
+                payload = jwt.decode(token, SECRET, algorithms=["HS256"])
 
-            cl.user_session.set("context", context)
+                context = cl.user_session.get("context", {})
+                context["authorized"] = True
+                context["token"] = token
+                context["userId"] = payload.get("sub")
+                context["email"] = payload.get("email")
+                context["timestamp"] = datetime.now().isoformat()
+
+                cl.user_session.set("context", context)
+
+                await cl.Message(
+                    content=f"✅ **Authorized!**\n\n👤 User: `{payload.get('sub')}`\n📧 Email: `{payload.get('email')}`"
+                ).send()
+
+            except jwt.InvalidTokenError as e:
+                await cl.Message(
+                    content=f"❌ **Authorization failed**: Invalid token"
+                ).send()
+                return
+
+            context = cl.user_session.get("context", {})
+            if not context.get("authorized"):
+                await cl.Message(content="❌ Not authorized. Send AUTH_TOKEN first.").send()
+                return
 
             await cl.Message(
                 content=f"✅ Context received!\n\n📋 **AOI ID**: `{context['areaId']}`\n\n🔑 **Token**: `{context['token'][:40]}...`\n\n🕐 **Updated**: {datetime.fromisoformat(context['timestamp']).strftime('%Y-%m-%d %H:%M:%S')}"
@@ -63,8 +96,18 @@ async def on_window_message(message: str):
             content=f"❌ Error: {str(e)}"
         ).send()
 
+
 @cl.on_message
 async def on_message(msg: cl.Message):
+    """Only process messages if authorized"""
+    context = cl.user_session.get("context", {})
+
+    if not context.get("authorized"):
+        await cl.Message(
+            content="❌ **Not authorized.** Please send AUTH_TOKEN via postMessage first."
+        ).send()
+        return
+
     """Handle user messages"""
     context = cl.user_session.get("context", {})
 
