@@ -1,65 +1,65 @@
-import chainlit as cl
-import json
-
-@cl.on_chat_start
-async def on_chat_start():
-    print("Chat session started.")
-    """Initialize the chat session"""
-    await cl.Message(
-        content="🚀 Chat session started. Listening for window messages..."
-    ).send()
-
-@cl.on_window_message
-async def handle_window_message(message: str):
-    print(f"Received window message: {message} ")
-    """
-    Handles window messages from the React host, including the READY_PING and 
-    application context updates.
-    """
-
-    try:
-        data = json.loads(message)
-
-        message_type = data.get("type")
-
-        if message_type == "READY_PING":
-            pong_payload = {
-                "type": "READY_PONG",
-                "status": "active",
-                "session_id": cl.get_session().get("id")
-            }
-
-            await cl.send_window_message(content=json.dumps(pong_payload))
-            await cl.Message(
-                content=f"PING received from host - sent PONG with session ID: {pong_payload['session_id']}",
-                author="System Integration"
-            ).send()
-            print("Backend: Dispatched READY_PONG and established session.")
-
-        elif message_type == "CONTEXT_UPDATE":
-            context_data = data.get("payload", {})
-            user_id = context_data.get("userId", "N/A")
-
-            cl.user_session.set("user_id", user_id)
-
-            await cl.Message(
-                content=f"Context received for User ID: {user_id}",
-                author="System Integration"
-            ).send()
-
-    except json.JSONDecodeError:
-        print(f"Error: Received non-JSON string: {message}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-
 # import chainlit as cl
+# import json
 
+# @cl.on_chat_start
+# async def on_chat_start():
+#     print("Chat session started.")
+#     """Initialize the chat session"""
+#     await cl.Message(
+#         content="🚀 Chat session started. Listening for window messages..."
+#     ).send()
 
 # @cl.on_window_message
-# async def window_message(message: str):
-#   if message.startswith("Client: "):
-#     await cl.Message(content=f"Window message received: {message}").send()
+# async def handle_window_message(message: str):
+#     print(f"Received window message: {message} ")
+#     """
+#     Handles window messages from the React host, including the READY_PING and 
+#     application context updates.
+#     """
+
+#     try:
+#         data = json.loads(message)
+
+#         message_type = data.get("type")
+
+#         if message_type == "READY_PING":
+#             pong_payload = {
+#                 "type": "READY_PONG",
+#                 "status": "active",
+#                 "session_id": cl.get_session().get("id")
+#             }
+
+#             await cl.send_window_message(content=json.dumps(pong_payload))
+#             await cl.Message(
+#                 content=f"PING received from host - sent PONG with session ID: {pong_payload['session_id']}",
+#                 author="System Integration"
+#             ).send()
+#             print("Backend: Dispatched READY_PONG and established session.")
+
+#         elif message_type == "CONTEXT_UPDATE":
+#             context_data = data.get("payload", {})
+#             user_id = context_data.get("userId", "N/A")
+
+#             cl.user_session.set("user_id", user_id)
+
+#             await cl.Message(
+#                 content=f"Context received for User ID: {user_id}",
+#                 author="System Integration"
+#             ).send()
+
+#     except json.JSONDecodeError:
+#         print(f"Error: Received non-JSON string: {message}")
+#     except Exception as e:
+#         print(f"An unexpected error occurred: {e}")
+
+
+import chainlit as cl
+
+
+@cl.on_window_message
+async def window_message(message: str):
+  if message.startswith("Client: "):
+    await cl.Message(content=f"Window message received: {message}").send()
 
 
 @cl.on_message
